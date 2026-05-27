@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+
+  accounts Account[]
+  tokens   AuthToken[]
+}
+
+model AuthToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([token])
+}
+
+enum AccountType {
+  checking
+  savings
+}
+
+enum AccountStatus {
+  active
+  frozen
+  closed
+}
+
+model Account {
+  id        String        @id @default(cuid())
+  userId    String
+  type      AccountType
+  number    String        @unique
+  currency  String        @default("USD")
+  balance   Decimal       @db.Decimal(14, 2) @default(0)
+  status    AccountStatus @default(active)
+  createdAt DateTime      @default(now())
+
+  user         User          @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+enum TransactionType {
+  deposit
+  withdrawal
+  transfer_in
+  transfer_out
+}
+
+enum TransactionStatus {
+  pending
+  posted
+  rejected
+  reversed
+}
+
+model Transaction {
+  id                    String            @id @default(cuid())
+  accountId             String
+  type                  TransactionType
+  amount                Decimal           @db.Decimal(14, 2)
+  status                TransactionStatus
+  counterpartyAccountId String?
+  transferId            String?
+  description           String?
+  createdAt             DateTime          @default(now())
+
+  account  Account   @relation(fields: [accountId], references: [id])
+  transfer Transfer? @relation(fields: [transferId], references: [id])
+
+  @@index([accountId, createdAt])
+  @@index([transferId])
+}
+
+enum TransferStatus {
+  pending
+  posted
+  failed
+  reversed
+}
+
+model Transfer {
+  id            String         @id @default(cuid())
+  fromAccountId String
+  toAccountId   String
+  amount        Decimal        @db.Decimal(14, 2)
+  status        TransferStatus
+  batchId       String?
+  createdAt     DateTime       @default(now())
+  postedAt      DateTime?
+
+  transactions Transaction[]
+
+  @@index([fromAccountId, createdAt])
+  @@index([toAccountId])
+  @@index([batchId])
+}
