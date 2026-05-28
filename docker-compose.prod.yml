@@ -1,0 +1,39 @@
+services:
+  app:
+    build: .
+    expose:
+      - "3000"
+    environment:
+      DATABASE_URL: postgresql://banking:${DB_PASSWORD}@db:5432/banking?schema=public
+      PORT: 3000
+      NODE_ENV: production
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.banking.rule=Host(`banking.srv1505121.hstgr.cloud`)
+      - traefik.http.routers.banking.entrypoints=websecure
+      - traefik.http.routers.banking.tls.certresolver=letsencrypt
+      - traefik.http.services.banking.loadbalancer.server.port=3000
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_DB: banking
+      POSTGRES_USER: banking
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U banking"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
