@@ -1,72 +1,29 @@
-# banking-api-lab
+# Banking API Lab
 
-A small personal-banking REST API built as the substrate for the AQA Course
-"API Testing with Playwright" exercise. Single currency (USD), opaque Bearer
-tokens, Prisma + PostgreSQL.
+A small banking-style REST API I built in May 2026 for the **API Testing with Playwright** exercise in my QA automation course. It gives students a predictable service for practising API tests with a database, authentication, and related records.
 
-The customer-facing API contract is in
-[`docs/2026-05-27-banking-api-customer-requirements.md`](docs/2026-05-27-banking-api-customer-requirements.md).
+## How I built it
 
-The implementation contains **two intentional defects** that are reproducible
-only via pairwise / combinatorial tests. They are documented (only) in the
-internal design doc — `docs/2026-05-27-banking-api-feature-design.md`. Do not
-share that doc with students.
+This was one of my first experiments with agentic development. I used a coding agent while I was learning how to break work into tasks, give the agent enough context, and check what it built. My goal was to get a working practice environment into the course. The project reflects how I worked with agents at that stage.
 
-## Quick start
+## What to practise
 
-```bash
-cp .env.example .env
-docker compose build
-docker compose up -d
-# API is on http://localhost:3000
-```
+- Register a user and obtain a bearer token, then use it for authenticated requests.
+- Test account creation, transfers, transaction history, and statements.
+- Check response contracts, validation errors, and state changes across related requests.
+- Use boundary and pairwise testing to cover combinations of inputs.
 
-Health check:
+The [student-facing API contract](docs/2026-05-27-banking-api-customer-requirements.md) defines the expected behaviour. Use synthetic data and your local lab instance.
+
+## Run locally
+
+With Docker and Docker Compose installed:
 
 ```bash
-curl http://localhost:3000/health
+docker compose up -d --build
+curl http://localhost:3001/health
 ```
 
-## Local dev (without Docker)
+The API container listens on port 3000 and Compose exposes it on port 3001. The container applies Prisma migrations on startup. For development without Docker, start PostgreSQL, copy `.env.example` to `.env`, fill in a local `DATABASE_URL`, then run `npm ci`, `npm run prisma:migrate:dev`, and `npm run dev`.
 
-```bash
-# 1. Start a Postgres somewhere reachable
-# 2. Set DATABASE_URL in .env
-npm install
-npx prisma migrate dev --name init
-npm run dev
-```
-
-## Production deploy (VPS, behind Traefik)
-
-The production stack lives at `/docker/banking-api-lab` on the VPS,
-next to MailLab. The host's Traefik (in `/docker/traefik`) auto-discovers
-this container via Docker labels and obtains a Let's Encrypt cert.
-
-First-time provisioning:
-
-```bash
-ssh hostinger
-cd /docker
-git clone git@github.com:Agentbars/banking-api-lab.git
-cd banking-api-lab
-printf 'DB_PASSWORD=%s\n' "$(openssl rand -hex 24)" > .env
-chmod 600 .env
-docker compose -f docker-compose.prod.yml up -d --build
-```
-
-After that, every redeploy is just:
-
-```bash
-ssh hostinger '/docker/banking-api-lab/deploy.sh'
-```
-
-Public URL: <https://banking.srv1505121.hstgr.cloud>.
-
-## Tech
-
-- Node 20 LTS, TypeScript (strict)
-- Express
-- Prisma 5 + PostgreSQL 16
-- bcrypt + opaque Bearer tokens (no JWT)
-- `Decimal(14, 2)` for all money
+**Stack:** TypeScript, Express, Prisma, PostgreSQL, Docker Compose.
