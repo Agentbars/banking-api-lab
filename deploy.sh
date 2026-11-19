@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-cd /docker/banking-api-lab
+cd -- "$(dirname -- "$0")"
 
 echo "Pulling latest code..."
 git pull origin main

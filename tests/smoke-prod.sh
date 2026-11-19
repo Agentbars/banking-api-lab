@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# End-to-end smoke against https://banking.srv1505121.hstgr.cloud.
+# End-to-end smoke against a Banking API Lab instance.
 # Uses fresh users each run (timestamp in email) so the daily-limit
 # counter never overlaps between runs.
 set -u
 
-API="${API:-https://banking.srv1505121.hstgr.cloud}"
+API="${API:-http://localhost:3001}"
 STAMP="$(date +%s)"
 A_EMAIL="alice+${STAMP}@bank.io"
 B_EMAIL="bob+${STAMP}@bank.io"

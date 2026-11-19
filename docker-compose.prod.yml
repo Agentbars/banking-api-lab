@@ -9,7 +9,7 @@ services:
       NODE_ENV: production
     labels:
       - traefik.enable=true
-      - traefik.http.routers.banking.rule=Host(`banking.srv1505121.hstgr.cloud`)
+      - traefik.http.routers.banking.rule=Host(`${BANKING_HOST:?Set BANKING_HOST}`)
       - traefik.http.routers.banking.entrypoints=websecure
       - traefik.http.routers.banking.tls.certresolver=letsencrypt
       - traefik.http.services.banking.loadbalancer.server.port=3000
